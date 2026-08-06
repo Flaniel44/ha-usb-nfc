@@ -59,3 +59,9 @@ under **Settings → Devices & services**.
 
 This adds native Tags, entities, and device triggers without MQTT, HACS, or any
 additional add-on.
+
+## Startup diagnostics
+
+The app performs a startup health check and creates persistent Home Assistant
+notifications for common setup problems. Users do not need to inspect low-level
+PC/SC or libusb errors to identify a missing reader or enabled Protection mode.

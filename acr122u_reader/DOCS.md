@@ -23,3 +23,17 @@ The existing events remain available:
 
 - `acr122u_card_present`
 - `acr122u_card_removed`
+
+## Startup diagnostics
+
+Version 1.3.0 checks:
+
+- Home Assistant API token availability
+- USB reader detection
+- PC/SC reader access
+- Bundled integration status
+
+Common error codes:
+
+- `HUN-001`: Reader detected but cannot be opened. Protection mode is likely enabled.
+- `HUN-002`: Supported USB reader not detected.
