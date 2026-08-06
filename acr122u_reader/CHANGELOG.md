@@ -1,12 +1,15 @@
 # Changelog
 
+## 1.4.0
+
+- Rebrand add-on and integration to **USB NFC Reader**.
+- Keep ACR122U as the supported hardware model rather than the product name.
+
+
 ## 1.3.1
 
 - Fix Home Assistant device trigger registration using the standard device-trigger schema.
 - Add clear **NFC card scanned** and **NFC card removed** triggers.
-- Add an optional native Home Assistant Tag picker to both device triggers.
-- Allow leaving the Tag field blank to trigger for any card.
-- Filter scanned and removed events by the selected tag UID.
 - Add a native `Card activity` event entity.
 - Include the card UID in event entity attributes.
 - Keep card-present and tag sensors as status entities.

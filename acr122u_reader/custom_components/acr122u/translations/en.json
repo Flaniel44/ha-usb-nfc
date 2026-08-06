@@ -1,9 +1,9 @@
 {
-  "title": "ACR122U NFC Reader",
+  "title": "USB NFC Reader",
   "config": {
     "step": {
       "user": {
-        "title": "Set up ACR122U NFC Reader",
+        "title": "Set up USB NFC Reader",
         "description": "Add the ACR122U reader device. The companion app must already be installed and running."
       }
     },
@@ -15,13 +15,6 @@
     "trigger_type": {
       "card_scanned": "NFC card scanned",
       "card_removed": "NFC card removed"
-    },
-    "trigger_subtype": {},
-    "trigger_extra_fields": {
-      "tag_id": {
-        "name": "Tag",
-        "description": "Choose a registered Home Assistant tag, or leave blank to trigger for any NFC card."
-      }
     }
   },
   "entity": {

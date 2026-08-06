@@ -31,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
         manufacturer="Advanced Card Systems",
         model="ACR122U",
-        name="ACR122U NFC Reader",
+        name="USB NFC Reader",
     )
 
     @callback

@@ -54,13 +54,3 @@ In the automation editor:
 
 The device also exposes a **Card activity** event entity with `scanned` and
 `removed` event types. The event includes the scanned card's `uid`.
-
-### Selecting a specific tag
-
-After choosing **NFC card scanned** or **NFC card removed**, an optional **Tag**
-field is displayed. It uses Home Assistant's native tag selector and lists tags
-registered under **Settings → Tags**.
-
-- Select a named tag to trigger only for that card.
-- Leave the field blank to trigger for any card.
-- A new card must be scanned once before it appears in the Tags list.

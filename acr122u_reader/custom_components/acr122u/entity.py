@@ -14,7 +14,7 @@ class ACR122UEntity(Entity):
             identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
             manufacturer="Advanced Card Systems",
             model="ACR122U",
-            name="ACR122U NFC Reader",
+            name="USB NFC Reader",
         )
 
     async def async_added_to_hass(self) -> None:
