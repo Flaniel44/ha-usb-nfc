@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.2
+
+- Replace APDU-based removal polling, which could block for roughly 30 seconds.
+- Use PC/SC `SCardGetStatusChange` with a configurable millisecond timeout.
+- Detect the reader's empty state without issuing a blocking card command.
+- Keep the normal CardMonitor removal callback as a fallback.
+- Continue suppressing duplicate removal events.
+
 ## 1.4.1
 
 - Add fast active-card presence polling for near-immediate removal detection.

@@ -2,10 +2,20 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Any
 
 from smartcard.CardMonitoring import CardMonitor, CardObserver
-from smartcard.Exceptions import CardConnectionException, NoCardException
+from smartcard.scard import (
+    SCARD_E_TIMEOUT,
+    SCARD_SCOPE_SYSTEM,
+    SCARD_STATE_CHANGED,
+    SCARD_STATE_EMPTY,
+    SCARD_STATE_PRESENT,
+    SCARD_S_SUCCESS,
+    SCardEstablishContext,
+    SCardGetErrorMessage,
+    SCardGetStatusChange,
+    SCardReleaseContext,
+)
 from smartcard.util import toHexString
 
 from .constants import EVENT_CARD_PRESENT, EVENT_CARD_REMOVED, GET_UID
@@ -28,7 +38,6 @@ class NFCObserver(CardObserver):
         self._last_scan_time = 0.0
 
         self._lock = threading.Lock()
-        self._active_connection: Any | None = None
         self._presence_thread: threading.Thread | None = None
         self._stop_presence = threading.Event()
 
@@ -39,7 +48,7 @@ class NFCObserver(CardObserver):
             self._handle_added(card)
 
         if removed_cards:
-            self._mark_removed("PC/SC removal event")
+            self._mark_removed("PC/SC CardMonitor callback")
 
     def _handle_added(self, card) -> None:
         try:
@@ -55,6 +64,7 @@ class NFCObserver(CardObserver):
                 return
 
             uid = toHexString(response).replace(" ", "").upper()
+            reader_name = str(card.reader)
             now = time.monotonic()
 
             with self._lock:
@@ -68,52 +78,91 @@ class NFCObserver(CardObserver):
                 self._state.present = True
                 self._state.current_uid = uid
                 self._state.last_uid = uid
-                self._active_connection = connection
 
             print(f"Card placed: {uid}", flush=True)
             self._client.send_event(
                 EVENT_CARD_PRESENT,
-                {"uid": uid, "reader": "ACR122U"},
+                {"uid": uid, "reader": reader_name},
             )
-            self._start_presence_monitor()
+            self._start_presence_monitor(reader_name)
 
         except Exception as error:
             print(f"✗ Card insertion error: {error}", flush=True)
 
-    def _start_presence_monitor(self) -> None:
+    def _start_presence_monitor(self, reader_name: str) -> None:
         self._stop_presence.set()
 
         old_thread = self._presence_thread
-        if old_thread and old_thread.is_alive():
+        if (
+            old_thread
+            and old_thread.is_alive()
+            and old_thread is not threading.current_thread()
+        ):
             old_thread.join(timeout=0.5)
 
         self._stop_presence = threading.Event()
         self._presence_thread = threading.Thread(
-            target=self._monitor_presence,
-            name="acr122u-presence-monitor",
+            target=self._monitor_reader_state,
+            args=(reader_name, self._stop_presence),
+            name="usb-nfc-reader-state-monitor",
             daemon=True,
         )
         self._presence_thread.start()
 
-    def _monitor_presence(self) -> None:
-        while not self._stop_presence.wait(self._removal_poll_interval):
-            with self._lock:
-                connection = self._active_connection
-                uid = self._state.current_uid
+    def _monitor_reader_state(
+        self,
+        reader_name: str,
+        stop_event: threading.Event,
+    ) -> None:
+        result, context = SCardEstablishContext(SCARD_SCOPE_SYSTEM)
+        if result != SCARD_S_SUCCESS:
+            print(
+                "✗ Could not establish PC/SC status context: "
+                f"{SCardGetErrorMessage(result)}",
+                flush=True,
+            )
+            return
 
-            if connection is None or uid is None:
-                return
+        timeout_ms = max(50, int(self._removal_poll_interval * 1000))
+        states = [(reader_name, SCARD_STATE_PRESENT)]
 
-            try:
-                _response, sw1, sw2 = connection.transmit(GET_UID)
-                if (sw1, sw2) != (0x90, 0x00):
-                    self._mark_removed(
-                        f"presence poll returned {sw1:02X}{sw2:02X}"
+        try:
+            while not stop_event.is_set():
+                result, new_states = SCardGetStatusChange(
+                    context,
+                    timeout_ms,
+                    states,
+                )
+
+                if result == SCARD_E_TIMEOUT:
+                    continue
+
+                if result != SCARD_S_SUCCESS:
+                    print(
+                        "✗ Reader-state check failed: "
+                        f"{SCardGetErrorMessage(result)}",
+                        flush=True,
                     )
                     return
-            except (CardConnectionException, NoCardException, Exception) as error:
-                self._mark_removed(f"presence poll failed: {error}")
-                return
+
+                if not new_states:
+                    continue
+
+                _reader, event_state, _atr = new_states[0]
+
+                if event_state & SCARD_STATE_EMPTY:
+                    self._mark_removed("reader state changed to empty")
+                    return
+
+                # Feed the observed state back into the next status-change call.
+                states = [
+                    (
+                        reader_name,
+                        event_state & ~SCARD_STATE_CHANGED,
+                    )
+                ]
+        finally:
+            SCardReleaseContext(context)
 
     def _mark_removed(self, reason: str) -> None:
         with self._lock:
@@ -123,20 +172,23 @@ class NFCObserver(CardObserver):
 
             self._state.present = False
             self._state.current_uid = None
-            self._active_connection = None
 
         self._stop_presence.set()
 
         print(f"Card removed: {uid} ({reason})", flush=True)
         self._client.send_event(
             EVENT_CARD_REMOVED,
-            {"uid": uid, "reader": "ACR122U"},
+            {"uid": uid, "reader": "USB NFC Reader"},
         )
 
     def stop(self) -> None:
         self._stop_presence.set()
         thread = self._presence_thread
-        if thread and thread.is_alive():
+        if (
+            thread
+            and thread.is_alive()
+            and thread is not threading.current_thread()
+        ):
             thread.join(timeout=1)
 
 
@@ -160,8 +212,8 @@ class ReaderService:
         self._monitor.addObserver(self._observer)
         print("✓ Reader service started", flush=True)
         print(
-            "✓ Fast removal polling enabled "
-            f"({self._observer._removal_poll_interval:.2f}s)",
+            "✓ Non-blocking removal monitoring enabled "
+            f"({self._observer._removal_poll_interval:.2f}s timeout)",
             flush=True,
         )
         print("Waiting for NFC cards...", flush=True)

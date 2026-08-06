@@ -82,3 +82,9 @@ status and conditions.
 ha-usb-nfc actively polls the presented card at a configurable interval, so
 **NFC card removed** automations react quickly instead of waiting for a delayed
 PC/SC removal notification. The default interval is 150 ms.
+
+### Non-blocking card removal
+
+Removal detection uses PC/SC reader-state changes rather than repeatedly sending
+commands to a card that may already be absent. This avoids the approximately
+30-second command timeout seen with some ACR122U configurations.

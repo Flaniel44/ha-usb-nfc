@@ -69,3 +69,12 @@ removal_poll_interval: 0.15
 This means card removal is normally detected within roughly 150–300 ms. Lower
 values respond faster but create more USB traffic. Values below 0.05 seconds are
 automatically clamped to 0.05 seconds.
+
+## Non-blocking removal monitoring
+
+Version 1.4.2 no longer sends repeated UID commands to determine whether the
+card is still present. Some ACR122U/PCSC combinations can block those commands
+for approximately 30 seconds after removal.
+
+The app now uses PC/SC reader-state monitoring with the configured
+`removal_poll_interval` as its maximum wait time. The default remains 150 ms.
