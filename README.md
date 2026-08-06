@@ -117,3 +117,10 @@ Add trigger
 The integration attributes each trigger to the specific reader device and
 supports selecting tags already registered under **Settings → Tags**. The
 legacy Card activity event entity is no longer loaded for new installations.
+
+### Native trigger discovery
+
+Version 1.4.6 aligns device-trigger registration with Home Assistant's official
+device automation scaffold. After restarting Home Assistant Core, the reader
+device exposes **NFC card scanned** and **NFC card removed**, with an optional
+Home Assistant Tag selector.

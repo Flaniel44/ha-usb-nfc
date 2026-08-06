@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.6
+
+- Fix native device-trigger discovery using Home Assistant's documented `TRIGGER_BASE_SCHEMA`.
+- Stop manually applying `TRIGGER_SCHEMA`; Home Assistant Core now applies it.
+- Validate delegated event triggers with Home Assistant's `event_trigger.TRIGGER_SCHEMA`.
+- Preserve the optional native Tag selector.
+- Mark Card Present as a diagnostic entity so generic occupancy triggers are de-emphasized.
+- Preserve the corrected modular GitHub Actions validation workflow.
+
 ## 1.4.5
 
 - Make **NFC card scanned** and **NFC card removed** the primary automation UI triggers.

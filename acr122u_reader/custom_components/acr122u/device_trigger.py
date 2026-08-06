@@ -13,6 +13,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, selector
+from homeassistant.helpers.device_automation import TRIGGER_BASE_SCHEMA
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, EVENT_DEVICE_ACTIVITY
@@ -23,7 +24,8 @@ TRIGGER_CARD_SCANNED = "card_scanned"
 TRIGGER_CARD_REMOVED = "card_removed"
 TRIGGER_TYPES = {TRIGGER_CARD_SCANNED, TRIGGER_CARD_REMOVED}
 
-TRIGGER_SCHEMA = cv.DEVICE_TRIGGER_BASE_SCHEMA.extend(
+# Home Assistant Core applies this schema automatically.
+TRIGGER_SCHEMA = TRIGGER_BASE_SCHEMA.extend(
     {
         vol.Required(CONF_TYPE): vol.In(TRIGGER_TYPES),
         vol.Optional(CONF_TAG_ID): cv.string,
@@ -35,7 +37,7 @@ async def async_get_triggers(
     hass: HomeAssistant,
     device_id: str,
 ) -> list[dict[str, Any]]:
-    """Return the explicit NFC triggers offered for this reader."""
+    """Return NFC triggers exposed for this reader device."""
     return [
         {
             CONF_PLATFORM: "device",
@@ -54,7 +56,7 @@ async def async_get_trigger_capabilities(
     hass: HomeAssistant,
     config: ConfigType,
 ) -> dict[str, vol.Schema]:
-    """Expose an optional native Home Assistant Tag selector."""
+    """Return optional trigger fields shown in the automation editor."""
     return {
         "extra_fields": vol.Schema(
             {
@@ -70,22 +72,23 @@ async def async_attach_trigger(
     action,
     trigger_info,
 ):
-    """Attach the UI device trigger to the normalized reader event."""
-    config = TRIGGER_SCHEMA(config)
-
+    """Attach the native device trigger to the reader activity event."""
     event_data = {
-        "device_id": config[CONF_DEVICE_ID],
-        "type": config[CONF_TYPE],
+        CONF_DEVICE_ID: config[CONF_DEVICE_ID],
+        CONF_TYPE: config[CONF_TYPE],
     }
 
     if tag_id := config.get(CONF_TAG_ID):
         event_data["uid"] = tag_id.upper()
 
-    event_config = {
-        event_trigger.CONF_PLATFORM: "event",
-        event_trigger.CONF_EVENT_TYPE: EVENT_DEVICE_ACTIVITY,
-        event_trigger.CONF_EVENT_DATA: event_data,
-    }
+    # Validate the delegated event trigger with Home Assistant's event schema.
+    event_config = event_trigger.TRIGGER_SCHEMA(
+        {
+            event_trigger.CONF_PLATFORM: "event",
+            event_trigger.CONF_EVENT_TYPE: EVENT_DEVICE_ACTIVITY,
+            event_trigger.CONF_EVENT_DATA: event_data,
+        }
+    )
 
     return await event_trigger.async_attach_trigger(
         hass,

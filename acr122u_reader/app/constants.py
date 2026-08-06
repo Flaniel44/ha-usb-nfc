@@ -1,7 +1,7 @@
 from pathlib import Path
 
 APP_NAME = "ha-usb-nfc"
-APP_VERSION = "1.4.5"
+APP_VERSION = "1.4.6"
 
 SUPERVISOR_BASE_URL = "http://supervisor/core/api"
 EVENT_CARD_PRESENT = "acr122u_card_present"
