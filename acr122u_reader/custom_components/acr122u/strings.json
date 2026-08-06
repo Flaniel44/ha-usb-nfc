@@ -15,6 +15,12 @@
     "trigger_type": {
       "card_scanned": "NFC card scanned",
       "card_removed": "NFC card removed"
+    },
+    "trigger_extra_fields": {
+      "tag_id": {
+        "name": "Tag",
+        "description": "Select a registered Home Assistant tag, or leave blank to trigger for any NFC card."
+      }
     }
   },
   "entity": {

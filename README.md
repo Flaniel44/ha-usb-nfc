@@ -101,3 +101,19 @@ The app releases the UID-reading PC/SC connection before monitoring for card
 removal. Timestamped logs show when removal was detected and how many
 milliseconds Home Assistant took to accept the event, making latency problems
 easier to isolate.
+
+## Recommended automation path
+
+Use the native reader device triggers:
+
+```text
+Add trigger
+→ Device
+→ USB NFC Reader
+→ NFC card scanned / NFC card removed
+→ Optional named Tag
+```
+
+The integration attributes each trigger to the specific reader device and
+supports selecting tags already registered under **Settings → Tags**. The
+legacy Card activity event entity is no longer loaded for new installations.

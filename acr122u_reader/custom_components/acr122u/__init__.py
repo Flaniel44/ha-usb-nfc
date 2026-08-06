@@ -11,6 +11,7 @@ from .const import (
     DOMAIN,
     EVENT_CARD_PRESENT,
     EVENT_CARD_REMOVED,
+    EVENT_DEVICE_ACTIVITY,
     PLATFORMS,
     SIGNAL_UPDATE,
 )
@@ -47,6 +48,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         state["last_event_type"] = "scanned"
         async_dispatcher_send(hass, SIGNAL_UPDATE, entry.entry_id)
 
+        hass.bus.async_fire(
+            EVENT_DEVICE_ACTIVITY,
+            {
+                "device_id": device.id,
+                "type": "card_scanned",
+                "uid": uid,
+                "reader": event.data.get("reader", "USB NFC Reader"),
+            },
+            context=event.context,
+        )
+
         hass.async_create_task(
             async_scan_tag(hass, uid, device.id, context=event.context)
         )
@@ -54,10 +66,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     @callback
     def handle_removed(event: Event) -> None:
         state = hass.data[DOMAIN][entry.entry_id]
+        uid = str(event.data.get("uid") or state.get("last_uid") or "").upper()
         state["present"] = False
         state["current_uid"] = None
         state["last_event_type"] = "removed"
         async_dispatcher_send(hass, SIGNAL_UPDATE, entry.entry_id)
+
+        hass.bus.async_fire(
+            EVENT_DEVICE_ACTIVITY,
+            {
+                "device_id": device.id,
+                "type": "card_removed",
+                "uid": uid,
+                "reader": event.data.get("reader", "USB NFC Reader"),
+            },
+            context=event.context,
+        )
 
     unsub_present = hass.bus.async_listen(EVENT_CARD_PRESENT, handle_present)
     unsub_removed = hass.bus.async_listen(EVENT_CARD_REMOVED, handle_removed)

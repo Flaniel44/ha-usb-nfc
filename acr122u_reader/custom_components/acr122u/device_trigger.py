@@ -12,10 +12,12 @@ from homeassistant.const import (
     CONF_TYPE,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType, TemplateVarsType
+from homeassistant.helpers import config_validation as cv, selector
+from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, EVENT_CARD_PRESENT, EVENT_CARD_REMOVED
+from .const import DOMAIN, EVENT_DEVICE_ACTIVITY
+
+CONF_TAG_ID = "tag_id"
 
 TRIGGER_CARD_SCANNED = "card_scanned"
 TRIGGER_CARD_REMOVED = "card_removed"
@@ -24,6 +26,7 @@ TRIGGER_TYPES = {TRIGGER_CARD_SCANNED, TRIGGER_CARD_REMOVED}
 TRIGGER_SCHEMA = cv.DEVICE_TRIGGER_BASE_SCHEMA.extend(
     {
         vol.Required(CONF_TYPE): vol.In(TRIGGER_TYPES),
+        vol.Optional(CONF_TAG_ID): cv.string,
     }
 )
 
@@ -32,6 +35,7 @@ async def async_get_triggers(
     hass: HomeAssistant,
     device_id: str,
 ) -> list[dict[str, Any]]:
+    """Return the explicit NFC triggers offered for this reader."""
     return [
         {
             CONF_PLATFORM: "device",
@@ -46,23 +50,41 @@ async def async_get_triggers(
     ]
 
 
+async def async_get_trigger_capabilities(
+    hass: HomeAssistant,
+    config: ConfigType,
+) -> dict[str, vol.Schema]:
+    """Expose an optional native Home Assistant Tag selector."""
+    return {
+        "extra_fields": vol.Schema(
+            {
+                vol.Optional(CONF_TAG_ID): selector.TagSelector(),
+            }
+        )
+    }
+
+
 async def async_attach_trigger(
     hass: HomeAssistant,
     config: ConfigType,
     action,
     trigger_info,
 ):
+    """Attach the UI device trigger to the normalized reader event."""
     config = TRIGGER_SCHEMA(config)
 
-    event_type = (
-        EVENT_CARD_PRESENT
-        if config[CONF_TYPE] == TRIGGER_CARD_SCANNED
-        else EVENT_CARD_REMOVED
-    )
+    event_data = {
+        "device_id": config[CONF_DEVICE_ID],
+        "type": config[CONF_TYPE],
+    }
+
+    if tag_id := config.get(CONF_TAG_ID):
+        event_data["uid"] = tag_id.upper()
 
     event_config = {
         event_trigger.CONF_PLATFORM: "event",
-        event_trigger.CONF_EVENT_TYPE: event_type,
+        event_trigger.CONF_EVENT_TYPE: EVENT_DEVICE_ACTIVITY,
+        event_trigger.CONF_EVENT_DATA: event_data,
     }
 
     return await event_trigger.async_attach_trigger(

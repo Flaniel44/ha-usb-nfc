@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.5
+
+- Make **NFC card scanned** and **NFC card removed** the primary automation UI triggers.
+- Normalize reader activity into a device-attributed `acr122u_event`.
+- Filter device triggers by the actual Home Assistant reader `device_id`.
+- Keep the optional native Home Assistant Tag picker for card-specific triggers.
+- Stop loading the ambiguous `Card activity` event entity for new installations.
+- Fix the startup banner to display the actual app version.
+- Preserve the low-level add-on events for backward compatibility.
+
 ## 1.4.4
 
 - Explicitly disconnect the temporary card connection immediately after reading the UID.

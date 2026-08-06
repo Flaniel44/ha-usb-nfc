@@ -99,3 +99,17 @@ to accept each event. This separates:
 - reader/PCSC removal-detection latency;
 - add-on-to-Home-Assistant API latency;
 - automation execution latency.
+
+## Native device triggers
+
+Version 1.4.5 makes the intended automation path explicit:
+
+1. Open **Settings → Automations & scenes**.
+2. Add a trigger.
+3. Choose **Device**.
+4. Select **USB NFC Reader**.
+5. Choose **NFC card scanned** or **NFC card removed**.
+6. Optionally select a named tag from **Settings → Tags**.
+
+The previous `Card activity` event entity is no longer loaded for new
+installations. Existing raw events remain available for backward compatibility.

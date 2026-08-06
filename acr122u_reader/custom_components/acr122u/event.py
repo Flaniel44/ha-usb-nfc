@@ -1,3 +1,8 @@
+"""Legacy Card activity event entity.
+
+No longer loaded as of 1.4.5. Use the native device triggers instead.
+"""
+
 from homeassistant.components.event import EventEntity
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
