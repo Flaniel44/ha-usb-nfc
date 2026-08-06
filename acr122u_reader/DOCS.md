@@ -54,3 +54,18 @@ In the automation editor:
 
 The device also exposes a **Card activity** event entity with `scanned` and
 `removed` event types. The event includes the scanned card's `uid`.
+
+## Fast card-removal detection
+
+Version 1.4.1 actively checks the currently presented card rather than relying
+only on the slower PC/SC removal callback.
+
+The default interval is:
+
+```yaml
+removal_poll_interval: 0.15
+```
+
+This means card removal is normally detected within roughly 150–300 ms. Lower
+values respond faster but create more USB traffic. Values below 0.05 seconds are
+automatically clamped to 0.05 seconds.

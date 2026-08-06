@@ -1,404 +1,84 @@
 # ha-usb-nfc
 
-> A plug-and-play USB NFC solution for Home Assistant.
+A Home Assistant OS app for reading NFC card UIDs from an ACS ACR122U USB reader.
 
-**ha-usb-nfc** brings USB NFC readers to Home Assistant with native Tags, native Automation triggers, automatic device discovery, and completely offline operation.
+The app runs `pcscd` inside its container, reads card UIDs through PC/SC, and sends local Home Assistant events when a card is placed on or removed from the reader.
 
-Unlike existing solutions, **ha-usb-nfc** is designed specifically for **Home Assistant OS**.
+## Events
 
-No MQTT.
+Card placed:
 
-No Node-RED.
-
-No ESPHome.
-
-No HACS.
-
-No external computer.
-
-Just install the add-on, plug in a USB NFC reader, and start automating.
-
----
-
-## Demo
-
-> *(Coming soon)*
-
-A short demo showing:
-
-- Tap NFC card
-- Light changes colour
-- Audio begins playing
-- Remove NFC card
-- Audio stops
-
----
-
-# Features
-
-## Native Home Assistant Integration
-
-- ✅ Native Home Assistant device
-- ✅ Native Home Assistant Tags
-- ✅ Native Device Triggers
-- ✅ Native Event Entity
-- ✅ Native Binary Sensor
-- ✅ Native Sensors
-
-No YAML required.
-
----
-
-## NFC Events
-
-Supports:
-
-- ✅ NFC card scanned
-- ✅ NFC card removed
-
-Each event includes:
-
-- UID
-- Reader name
-
----
-
-## Automation UI
-
-Create automations directly from the Home Assistant UI.
-
-Examples:
-
-```
-Device
-    USB NFC Reader
-        NFC card scanned
+```yaml
+event_type: acr122u_card_present
+data:
+  uid: C8149FEF
+  reader: ACR122U
 ```
 
-```
-Device
-    USB NFC Reader
-        NFC card removed
-```
+Card removed:
 
-Optionally choose:
-
-- Any card
-- A specific Home Assistant Tag
-
-No manual UID entry required.
-
----
-
-## Automatic Tag Registration
-
-Unknown NFC cards are automatically added to:
-
-```
-Settings
-    → Tags
+```yaml
+event_type: acr122u_card_removed
+data:
+  uid: C8149FEF
+  reader: ACR122U
 ```
 
-Rename them once:
+## Installation
 
-```
-Welcome Card
+1. In Home Assistant, open **Settings → Apps → App store**.
+2. Open the repository menu and add:
 
-Movie Card
+   `https://github.com/Flaniel44/ha-usb-nfc`
 
-Blue Demo Card
-```
+3. Install **ACR122U NFC Reader**.
+4. Disable **Protection mode**.
+5. Enable **Start on boot** and **Watchdog**.
+6. Start the app.
 
-Then use those names everywhere in Home Assistant.
+## Hardware
 
----
+Tested with:
 
-## Reader Status
+- ACS ACR122U PICC Interface
+- USB vendor ID `072f`
+- USB product ID `2200`
+- Home Assistant OS on Raspberry Pi
 
-The integration exposes:
+## Important
 
-| Entity | Purpose |
-|---------|----------|
-| Card Present | Whether a card is currently on the reader |
-| Current Tag | UID currently on the reader |
-| Last Tag | Most recently scanned card |
-| Card Activity | Event entity for scans/removals |
+Protection mode must be disabled so the app can open the USB smart-card reader.
 
----
+This project is currently an app rather than a Core custom integration because direct USB access, `pcscd`, CCID libraries, and system packages are required.
 
-## Startup Diagnostics
+## Native Home Assistant integration (v1.2.0)
 
-Every startup performs a complete health check.
+The app bundles and installs a companion custom integration. After starting the
+updated app, restart Home Assistant Core once and add **ACR122U NFC Reader**
+under **Settings → Devices & services**.
 
-Example:
+This adds native Tags, entities, and device triggers without MQTT, HACS, or any
+additional add-on.
 
-```text
-────────────────────────────────────
-ha-usb-nfc v1.3.1
-────────────────────────────────────
+## Startup diagnostics
 
-Running startup diagnostics...
+The app performs a startup health check and creates persistent Home Assistant
+notifications for common setup problems. Users do not need to inspect low-level
+PC/SC or libusb errors to identify a missing reader or enabled Protection mode.
 
-✓ Home Assistant API
+## Automation triggers
 
-✓ USB subsystem
+The ACR122U device provides two explicit device triggers:
 
-✓ ACR122U detected
+- **NFC card scanned**
+- **NFC card removed**
 
-✓ USB permissions
+It also provides a **Card activity** event entity whose events contain the tag
+UID. The Card present, Current tag, and Last tag entities remain available for
+status and conditions.
 
-✓ Integration installed
+## Fast removal detection
 
-Waiting for NFC cards...
-```
-
-The goal is simple:
-
-**Users should never need to read cryptic log messages.**
-
----
-
-## Helpful Notifications
-
-Instead of silently failing, ha-usb-nfc guides the user.
-
-Examples:
-
-- Protection Mode enabled
-- USB reader not connected
-- Home Assistant restart required
-- Integration successfully installed
-
-Everything appears as native Home Assistant notifications.
-
----
-
-# Installation
-
-## 1. Add this repository
-
-Open:
-
-```
-Settings
-    → Add-ons
-    → Add-on Store
-```
-
-Click:
-
-```
-⋮
-Repositories
-```
-
-Add:
-
-```
-https://github.com/Flaniel44/ha-usb-nfc
-```
-
----
-
-## 2. Install the add-on
-
-Install:
-
-```
-USB NFC Reader
-```
-
----
-
-## 3. Disable Protection Mode
-
-Open the add-on.
-
-Disable:
-
-- Protection Mode
-
-This allows direct USB access to supported readers.
-
-If you forget, the add-on will notify you automatically.
-
----
-
-## 4. Start the add-on
-
-Enable:
-
-- Start on boot
-- Watchdog
-
-Start the add-on.
-
----
-
-## 5. Restart Home Assistant
-
-If the bundled integration was installed or updated, the add-on will automatically create a persistent notification requesting a Home Assistant restart.
-
-Restart Home Assistant once.
-
----
-
-## 6. Add the Integration
-
-Go to:
-
-```
-Settings
-    → Devices & Services
-```
-
-Click:
-
-```
-Add Integration
-```
-
-Search for:
-
-```
-USB NFC Reader
-```
-
----
-
-# Creating Automations
-
-## Trigger on any card
-
-```
-Device
-
-USB NFC Reader
-
-NFC card scanned
-```
-
----
-
-## Trigger on a specific card
-
-Choose:
-
-```
-Tag
-
-Welcome Card
-```
-
-or any other Home Assistant Tag.
-
-No UID lookup required.
-
----
-
-## Trigger when a card is removed
-
-```
-Device
-
-USB NFC Reader
-
-NFC card removed
-```
-
-Optionally select a specific Tag.
-
----
-
-# Supported Hardware
-
-Currently supported:
-
-- ACS ACR122U
-
-Planned:
-
-- ACS ACR1252U
-- PN532 (USB)
-- HID Omnikey
-- Sony RC-S380
-- Other PC/SC-compatible USB NFC readers
-
----
-
-# Troubleshooting
-
-| Code | Meaning | Resolution |
-|------|---------|------------|
-| HUN-001 | USB reader detected but inaccessible | Disable Protection Mode |
-| HUN-002 | USB reader not detected | Connect a supported reader |
-| HUN-004 | Home Assistant API unavailable | Wait for Home Assistant to finish starting |
-| HUN-005 | Integration installation failed | Verify Home Assistant configuration directory permissions |
-
----
-
-# Why?
-
-The ACS ACR122U is one of the world's most common USB NFC readers, yet Home Assistant has never had a polished, offline-first solution.
-
-ha-usb-nfc aims to become the standard USB NFC integration for Home Assistant by providing a clean installation experience, native Home Assistant features, and support for additional USB NFC readers over time.
-
----
-
-# Roadmap
-
-## Completed
-
-- Native Home Assistant integration
-- Native Tags
-- Native Device Triggers
-- Native Event Entity
-- Card scanned events
-- Card removed events
-- Automatic Tag registration
-- Startup diagnostics
-- Persistent notifications
-- Automatic integration installation
-- Offline operation
-
-## In Progress
-
-- Multiple reader support
-- Automatic reader reconnect
-- Better diagnostics
-
-## Planned
-
-- Reader LED control
-- Reader buzzer control
-- Write NFC tags
-- Read NDEF records
-- Blueprint library
-- Home Assistant Assist support
-- Additional USB NFC readers
-
----
-
-# Contributing
-
-Bug reports, ideas, feature requests, and pull requests are always welcome.
-
-If you own a USB NFC reader that isn't currently supported, please open an issue with the model number and USB identifiers.
-
----
-
-# AI Disclosure
-
-This project was developed collaboratively by a human developer and AI.
-
-OpenAI's ChatGPT was used throughout the design, implementation, debugging, documentation, and refinement of the project. AI significantly accelerated development by helping generate ideas, review code, identify issues, and iterate on solutions.
-
-All architectural decisions, hardware validation, feature selection, testing, and final acceptance were performed by the project author using real Home Assistant OS hardware.
-
-The goal of this disclosure is transparency. This project reflects a collaborative software engineering workflow where AI served as a development partner, while responsibility for the final product remains with the project author.
-
----
-
-# License
-
-MIT
+ha-usb-nfc actively polls the presented card at a configurable interval, so
+**NFC card removed** automations react quickly instead of waiting for a delayed
+PC/SC removal notification. The default interval is 150 ms.

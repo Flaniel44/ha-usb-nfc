@@ -54,6 +54,7 @@ def main() -> None:
 
     options = read_options()
     cooldown_seconds = float(options.get("cooldown_seconds", 2))
+    removal_poll_interval = float(options.get("removal_poll_interval", 0.15))
 
     client = HomeAssistantClient()
     notifications = NotificationManager(client)
@@ -67,7 +68,11 @@ def main() -> None:
         while True:
             time.sleep(60)
 
-    ReaderService(client, cooldown_seconds).run()
+    ReaderService(
+        client,
+        cooldown_seconds,
+        removal_poll_interval,
+    ).run()
 
 
 if __name__ == "__main__":

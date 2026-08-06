@@ -1,5 +1,5 @@
 name: USB NFC Reader
-version: "1.4.0"
+version: "1.4.1"
 slug: acr122u_reader
 description: Plug-and-play USB NFC reader integration for Home Assistant
 url: https://github.com/Flaniel44/ha-usb-nfc
@@ -16,5 +16,7 @@ map:
     read_only: false
 options:
   cooldown_seconds: 2
+  removal_poll_interval: 0.15
 schema:
   cooldown_seconds: float
+  removal_poll_interval: float

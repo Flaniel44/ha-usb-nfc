@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.1
+
+- Add fast active-card presence polling for near-immediate removal detection.
+- Default removal polling interval is 150 ms.
+- Keep the normal PC/SC removal callback as a fallback.
+- Prevent duplicate card-removed events when both detection methods fire.
+- Add configurable `removal_poll_interval`.
+
 ## 1.4.0
 
 - Rebrand add-on and integration to **USB NFC Reader**.

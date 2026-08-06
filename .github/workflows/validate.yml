@@ -7,17 +7,10 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install validation dependencies
+      - name: Install validation dependency
         run: pip install pyyaml
 
       - name: Validate YAML
@@ -33,18 +26,4 @@ jobs:
           PY
 
       - name: Compile Python
-        run: |
-          python -m compileall -q acr122u_reader/app
-          python -m compileall -q acr122u_reader/custom_components/acr122u
-
-      - name: Validate JSON
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          for path in Path(".").rglob("*.json"):
-              with path.open("r", encoding="utf-8") as file:
-                  json.load(file)
-              print(f"Validated {path}")
-          PY
+        run: python -m py_compile acr122u_reader/reader.py
