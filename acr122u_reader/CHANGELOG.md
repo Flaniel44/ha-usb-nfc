@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.3
+
+- Fix PC/SC state monitoring initialization.
+- Establish the reader baseline with `SCARD_STATE_UNAWARE`.
+- Feed the complete state returned by PC/SC into the next status-change call.
+- Preserve pcsc-lite event-counter bits instead of manually reconstructing state.
+- Add baseline state logging for removal-latency diagnostics.
+
 ## 1.4.2
 
 - Replace APDU-based removal polling, which could block for roughly 30 seconds.

@@ -78,3 +78,11 @@ for approximately 30 seconds after removal.
 
 The app now uses PC/SC reader-state monitoring with the configured
 `removal_poll_interval` as its maximum wait time. The default remains 150 ms.
+
+## Reader-state synchronization
+
+Version 1.4.3 initializes PC/SC monitoring with `SCARD_STATE_UNAWARE`, obtains
+the reader's full baseline state, and passes each returned state directly into
+the following status-change call. This matches PySCard's documented monitoring
+pattern and prevents the fast watcher from remaining out of sync while the
+slower CardMonitor callback eventually reports removal.

@@ -88,3 +88,9 @@ PC/SC removal notification. The default interval is 150 ms.
 Removal detection uses PC/SC reader-state changes rather than repeatedly sending
 commands to a card that may already be absent. This avoids the approximately
 30-second command timeout seen with some ACR122U configurations.
+
+### Synchronized PC/SC state monitoring
+
+Removal monitoring first establishes the reader's complete PC/SC state and then
+tracks changes from that baseline. This avoids falling back to the reader's
+slower removal callback when additional state flags are present.

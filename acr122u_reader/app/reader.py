@@ -10,6 +10,7 @@ from smartcard.scard import (
     SCARD_STATE_CHANGED,
     SCARD_STATE_EMPTY,
     SCARD_STATE_PRESENT,
+    SCARD_STATE_UNAWARE,
     SCARD_S_SUCCESS,
     SCardEstablishContext,
     SCardGetErrorMessage,
@@ -124,10 +125,37 @@ class NFCObserver(CardObserver):
             return
 
         timeout_ms = max(50, int(self._removal_poll_interval * 1000))
-        states = [(reader_name, SCARD_STATE_PRESENT)]
 
         try:
+            # Ask PC/SC for the complete current state first. Starting with
+            # SCARD_STATE_UNAWARE forces an immediate baseline response.
+            result, states = SCardGetStatusChange(
+                context,
+                timeout_ms,
+                [(reader_name, SCARD_STATE_UNAWARE)],
+            )
+
+            if result != SCARD_S_SUCCESS or not states:
+                print(
+                    "✗ Could not establish reader-state baseline: "
+                    f"{SCardGetErrorMessage(result)}",
+                    flush=True,
+                )
+                return
+
+            _reader, baseline_state, _atr = states[0]
+            print(
+                f"✓ Reader-state baseline established: 0x{baseline_state:08X}",
+                flush=True,
+            )
+
+            if baseline_state & SCARD_STATE_EMPTY:
+                self._mark_removed("reader was already empty at baseline")
+                return
+
             while not stop_event.is_set():
+                # PySCard expects the complete state returned by the previous
+                # call to be supplied as the current state for the next call.
                 result, new_states = SCardGetStatusChange(
                     context,
                     timeout_ms,
@@ -154,13 +182,9 @@ class NFCObserver(CardObserver):
                     self._mark_removed("reader state changed to empty")
                     return
 
-                # Feed the observed state back into the next status-change call.
-                states = [
-                    (
-                        reader_name,
-                        event_state & ~SCARD_STATE_CHANGED,
-                    )
-                ]
+                # Preserve the full returned state, including pcsc-lite's
+                # upper event-counter bits, for the next comparison.
+                states = new_states
         finally:
             SCardReleaseContext(context)
 
