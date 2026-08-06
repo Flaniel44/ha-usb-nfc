@@ -50,3 +50,12 @@ Tested with:
 Protection mode must be disabled so the app can open the USB smart-card reader.
 
 This project is currently an app rather than a Core custom integration because direct USB access, `pcscd`, CCID libraries, and system packages are required.
+
+## Native Home Assistant integration (v1.2.0)
+
+The app bundles and installs a companion custom integration. After starting the
+updated app, restart Home Assistant Core once and add **ACR122U NFC Reader**
+under **Settings → Devices & services**.
+
+This adds native Tags, entities, and device triggers without MQTT, HACS, or any
+additional add-on.

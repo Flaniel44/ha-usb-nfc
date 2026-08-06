@@ -1,17 +1,15 @@
 # Changelog
 
+## 1.2.0
+
+- Bundle a Home Assistant custom integration in the app.
+- Automatically install/update the integration under `custom_components/acr122u`.
+- Register scanned UIDs as native Home Assistant Tags.
+- Add a native ACR122U device.
+- Add card-present, current-tag, and last-tag entities.
+- Add UI device triggers for card placed and card removed.
+- Retain custom events for backward compatibility.
+
 ## 1.1.0
 
-- Emit `acr122u_card_present` when a card is placed.
-- Emit `acr122u_card_removed` when a card is removed.
-- Include the UID and reader name in both events.
-- Add duplicate-scan cooldown configuration.
-
-## 1.0.1
-
-- Use an explicit Home Assistant base image.
-- Restrict architecture to `aarch64`.
-
-## 1.0.0
-
-- Initial ACR122U reader implementation.
+- Emit card-present and card-removed events.

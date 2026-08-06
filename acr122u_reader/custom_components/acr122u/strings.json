@@ -1,0 +1,20 @@
+{
+  "title": "ACR122U NFC Reader",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up ACR122U NFC Reader",
+        "description": "Add the ACR122U reader device. The companion app must already be installed and running."
+      }
+    },
+    "abort": {
+      "already_configured": "The ACR122U reader is already configured."
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "card_placed": "Card placed",
+      "card_removed": "Card removed"
+    }
+  }
+}
