@@ -37,3 +37,30 @@ Common error codes:
 
 - `HUN-001`: Reader detected but cannot be opened. Protection mode is likely enabled.
 - `HUN-002`: Supported USB reader not detected.
+
+## Clear automation triggers
+
+After updating the app, restart Home Assistant Core so the updated integration
+files load.
+
+In the automation editor:
+
+1. Add a trigger.
+2. Choose **Device**.
+3. Select **ACR122U NFC Reader**.
+4. Select either:
+   - **NFC card scanned**
+   - **NFC card removed**
+
+The device also exposes a **Card activity** event entity with `scanned` and
+`removed` event types. The event includes the scanned card's `uid`.
+
+### Selecting a specific tag
+
+After choosing **NFC card scanned** or **NFC card removed**, an optional **Tag**
+field is displayed. It uses Home Assistant's native tag selector and lists tags
+registered under **Settings → Tags**.
+
+- Select a named tag to trigger only for that card.
+- Leave the field blank to trigger for any card.
+- A new card must be scanned once before it appears in the Tags list.

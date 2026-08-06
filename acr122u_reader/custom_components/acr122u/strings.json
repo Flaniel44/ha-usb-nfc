@@ -13,8 +13,30 @@
   },
   "device_automation": {
     "trigger_type": {
-      "card_placed": "Card placed",
-      "card_removed": "Card removed"
+      "card_scanned": "NFC card scanned",
+      "card_removed": "NFC card removed"
+    },
+    "trigger_subtype": {},
+    "trigger_extra_fields": {
+      "tag_id": {
+        "name": "Tag",
+        "description": "Choose a registered Home Assistant tag, or leave blank to trigger for any NFC card."
+      }
+    }
+  },
+  "entity": {
+    "event": {
+      "card_activity": {
+        "name": "Card activity",
+        "state_attributes": {
+          "event_type": {
+            "name": "Event type"
+          },
+          "uid": {
+            "name": "Tag UID"
+          }
+        }
+      }
     }
   }
 }

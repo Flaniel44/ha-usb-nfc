@@ -22,6 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "present": False,
         "current_uid": None,
         "last_uid": None,
+        "last_event_type": None,
     }
 
     device_registry = dr.async_get(hass)
@@ -43,6 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         state["present"] = True
         state["current_uid"] = uid
         state["last_uid"] = uid
+        state["last_event_type"] = "scanned"
         async_dispatcher_send(hass, SIGNAL_UPDATE, entry.entry_id)
 
         hass.async_create_task(
@@ -54,6 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         state = hass.data[DOMAIN][entry.entry_id]
         state["present"] = False
         state["current_uid"] = None
+        state["last_event_type"] = "removed"
         async_dispatcher_send(hass, SIGNAL_UPDATE, entry.entry_id)
 
     unsub_present = hass.bus.async_listen(EVENT_CARD_PRESENT, handle_present)

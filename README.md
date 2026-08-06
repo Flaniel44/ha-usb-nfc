@@ -65,3 +65,21 @@ additional add-on.
 The app performs a startup health check and creates persistent Home Assistant
 notifications for common setup problems. Users do not need to inspect low-level
 PC/SC or libusb errors to identify a missing reader or enabled Protection mode.
+
+## Automation triggers
+
+The ACR122U device provides two explicit device triggers:
+
+- **NFC card scanned**
+- **NFC card removed**
+
+It also provides a **Card activity** event entity whose events contain the tag
+UID. The Card present, Current tag, and Last tag entities remain available for
+status and conditions.
+
+### Card-specific triggers
+
+Both NFC device triggers include an optional Home Assistant **Tag** selector.
+Choose a named tag from **Settings → Tags**, or leave it blank to match any
+card. The same selector works for card removal because ha-usb-nfc remembers the
+UID of the card currently on the reader.
