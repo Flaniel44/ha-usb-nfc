@@ -1,0 +1,29 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install validation dependency
+        run: pip install pyyaml
+
+      - name: Validate YAML
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          for path in Path(".").rglob("*.yaml"):
+              with path.open("r", encoding="utf-8") as file:
+                  yaml.safe_load(file)
+              print(f"Validated {path}")
+          PY
+
+      - name: Compile Python
+        run: python -m py_compile acr122u_reader/reader.py

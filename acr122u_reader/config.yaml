@@ -1,0 +1,17 @@
+name: ACR122U NFC Reader
+version: "1.1.0"
+slug: acr122u_reader
+description: Reads NFC card UIDs and emits card-present and card-removed events
+url: https://github.com/Flaniel44/home-assistant-acr122u
+startup: services
+boot: auto
+init: false
+arch:
+  - aarch64
+homeassistant_api: true
+hassio_api: true
+full_access: true
+options:
+  cooldown_seconds: 2
+schema:
+  cooldown_seconds: float
