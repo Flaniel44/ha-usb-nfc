@@ -2,6 +2,7 @@ import os
 import requests
 
 from .constants import SUPERVISOR_BASE_URL
+from .log import log, monotonic_ms
 
 
 class HomeAssistantClient:
@@ -20,7 +21,11 @@ class HomeAssistantClient:
 
     def send_event(self, event_type: str, payload: dict) -> bool:
         if not self._token:
+            log(f"✗ Cannot send {event_type}: SUPERVISOR_TOKEN unavailable")
             return False
+
+        started_ms = monotonic_ms()
+        log(f"→ Sending {event_type}: {payload}")
 
         try:
             response = requests.post(
@@ -30,10 +35,12 @@ class HomeAssistantClient:
                 timeout=10,
             )
             response.raise_for_status()
-            print(f"✓ Sent {event_type}: {payload}", flush=True)
+            elapsed_ms = monotonic_ms() - started_ms
+            log(f"✓ Home Assistant accepted {event_type} in {elapsed_ms} ms")
             return True
         except requests.RequestException as error:
-            print(f"✗ Failed to send {event_type}: {error}", flush=True)
+            elapsed_ms = monotonic_ms() - started_ms
+            log(f"✗ Failed to send {event_type} after {elapsed_ms} ms: {error}")
             return False
 
     def create_notification(

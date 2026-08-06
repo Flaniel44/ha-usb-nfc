@@ -94,3 +94,10 @@ commands to a card that may already be absent. This avoids the approximately
 Removal monitoring first establishes the reader's complete PC/SC state and then
 tracks changes from that baseline. This avoids falling back to the reader's
 slower removal callback when additional state flags are present.
+
+### Instrumented removal timing
+
+The app releases the UID-reading PC/SC connection before monitoring for card
+removal. Timestamped logs show when removal was detected and how many
+milliseconds Home Assistant took to accept the event, making latency problems
+easier to isolate.

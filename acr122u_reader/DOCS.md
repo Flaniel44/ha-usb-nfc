@@ -86,3 +86,16 @@ the reader's full baseline state, and passes each returned state directly into
 the following status-change call. This matches PySCard's documented monitoring
 pattern and prevents the fast watcher from remaining out of sync while the
 slower CardMonitor callback eventually reports removal.
+
+## Instrumented removal diagnostics
+
+Version 1.4.4 explicitly releases the temporary PC/SC connection immediately
+after reading a card UID. Removal monitoring begins only after that handle has
+been closed.
+
+Logs now include millisecond timestamps and report how long Home Assistant took
+to accept each event. This separates:
+
+- reader/PCSC removal-detection latency;
+- add-on-to-Home-Assistant API latency;
+- automation execution latency.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.4
+
+- Explicitly disconnect the temporary card connection immediately after reading the UID.
+- Use `SCARD_LEAVE_CARD` so releasing the software handle does not reset or power down the NFC card.
+- Start removal monitoring only after the UID-reading connection is released.
+- Add millisecond timestamps to reader and Home Assistant event logs.
+- Measure and log Home Assistant event-delivery latency.
+- Include the monotonic removal-detection timestamp in removal event data for diagnostics.
+
 ## 1.4.3
 
 - Fix PC/SC state monitoring initialization.

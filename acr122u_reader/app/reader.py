@@ -11,6 +11,7 @@ from smartcard.scard import (
     SCARD_STATE_EMPTY,
     SCARD_STATE_PRESENT,
     SCARD_STATE_UNAWARE,
+    SCARD_LEAVE_CARD,
     SCARD_S_SUCCESS,
     SCardEstablishContext,
     SCardGetErrorMessage,
@@ -22,6 +23,7 @@ from smartcard.util import toHexString
 from .constants import EVENT_CARD_PRESENT, EVENT_CARD_REMOVED, GET_UID
 from .events import HomeAssistantClient
 from .models import ReaderState
+from .log import log, monotonic_ms
 
 
 class NFCObserver(CardObserver):
@@ -52,16 +54,15 @@ class NFCObserver(CardObserver):
             self._mark_removed("PC/SC CardMonitor callback")
 
     def _handle_added(self, card) -> None:
+        connection = None
+
         try:
             connection = card.createConnection()
-            connection.connect()
+            connection.connect(disposition=SCARD_LEAVE_CARD)
 
             response, sw1, sw2 = connection.transmit(GET_UID)
             if (sw1, sw2) != (0x90, 0x00):
-                print(
-                    f"✗ UID command failed: SW1={sw1:02X}, SW2={sw2:02X}",
-                    flush=True,
-                )
+                log(f"✗ UID command failed: SW1={sw1:02X}, SW2={sw2:02X}")
                 return
 
             uid = toHexString(response).replace(" ", "").upper()
@@ -80,15 +81,26 @@ class NFCObserver(CardObserver):
                 self._state.current_uid = uid
                 self._state.last_uid = uid
 
-            print(f"Card placed: {uid}", flush=True)
+            log(f"Card placed: {uid}")
             self._client.send_event(
                 EVENT_CARD_PRESENT,
                 {"uid": uid, "reader": reader_name},
             )
-            self._start_presence_monitor(reader_name)
 
         except Exception as error:
-            print(f"✗ Card insertion error: {error}", flush=True)
+            log(f"✗ Card insertion error: {error}")
+            return
+
+        finally:
+            if connection is not None:
+                try:
+                    connection.disconnect()
+                    log("✓ Released UID-reading card connection")
+                except Exception as disconnect_error:
+                    log(f"⚠ Could not cleanly disconnect card connection: {disconnect_error}")
+
+        # Begin reader-state monitoring only after releasing the card handle.
+        self._start_presence_monitor(reader_name)
 
     def _start_presence_monitor(self, reader_name: str) -> None:
         self._stop_presence.set()
@@ -144,10 +156,7 @@ class NFCObserver(CardObserver):
                 return
 
             _reader, baseline_state, _atr = states[0]
-            print(
-                f"✓ Reader-state baseline established: 0x{baseline_state:08X}",
-                flush=True,
-            )
+            log(f"✓ Reader-state baseline established: 0x{baseline_state:08X}")
 
             if baseline_state & SCARD_STATE_EMPTY:
                 self._mark_removed("reader was already empty at baseline")
@@ -199,10 +208,11 @@ class NFCObserver(CardObserver):
 
         self._stop_presence.set()
 
-        print(f"Card removed: {uid} ({reason})", flush=True)
+        detected_ms = monotonic_ms()
+        log(f"Card removed: {uid} ({reason})")
         self._client.send_event(
             EVENT_CARD_REMOVED,
-            {"uid": uid, "reader": "USB NFC Reader"},
+            {"uid": uid, "reader": "USB NFC Reader", "detected_monotonic_ms": detected_ms},
         )
 
     def stop(self) -> None:
@@ -234,13 +244,12 @@ class ReaderService:
 
     def run(self) -> None:
         self._monitor.addObserver(self._observer)
-        print("✓ Reader service started", flush=True)
-        print(
+        log("✓ Reader service started")
+        log(
             "✓ Non-blocking removal monitoring enabled "
-            f"({self._observer._removal_poll_interval:.2f}s timeout)",
-            flush=True,
+            f"({self._observer._removal_poll_interval:.2f}s timeout)"
         )
-        print("Waiting for NFC cards...", flush=True)
+        log("Waiting for NFC cards...")
 
         try:
             while True:
