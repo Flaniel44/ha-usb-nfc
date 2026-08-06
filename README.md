@@ -1,61 +1,186 @@
-# Home Assistant ACR122U
+# ACR122U NFC Reader for Home Assistant
 
-A Home Assistant OS app for reading NFC card UIDs from an ACS ACR122U USB reader.
+A Home Assistant add-on that turns an **ACS ACR122U USB NFC reader** into a native Home Assistant device.
 
-The app runs `pcscd` inside its container, reads card UIDs through PC/SC, and sends local Home Assistant events when a card is placed on or removed from the reader.
+Unlike existing solutions, this project is designed to work **entirely offline** with Home Assistant OS and supports:
 
-## Events
+- 📇 Native Home Assistant Tags
+- 📡 Card placed / card removed events
+- 🎛 Native device triggers in the Automation UI
+- 🔖 Automatic tag registration
+- 🔌 USB ACR122U support
+- 🌐 No cloud required
+- 📶 No MQTT required
+- 🏠 Fully local
 
-Card placed:
+---
 
-```yaml
-event_type: acr122u_card_present
-data:
-  uid: C8149FEF
-  reader: ACR122U
+# Features
+
+- Detect NFC cards using an ACS ACR122U
+- Fire events when a card is placed on or removed from the reader
+- Automatically register scanned cards as Home Assistant Tags
+- Expose:
+  - Binary sensor: Card Present
+  - Sensor: Current Tag
+  - Sensor: Last Tag
+- Native Automation UI support
+- Runs entirely on Home Assistant OS
+
+---
+
+# Requirements
+
+- Home Assistant OS
+- ACS ACR122U USB NFC Reader
+- USB NFC tags/cards
+
+---
+
+# Installation
+
+## 1. Add this repository
+
+Open:
+
+**Settings → Add-ons → Add-on Store**
+
+Click the **⋮** menu → **Repositories**
+
+Add:
+
+```
+https://github.com/Flaniel44/home-assistant-acr122u
 ```
 
-Card removed:
+---
 
-```yaml
-event_type: acr122u_card_removed
-data:
-  uid: C8149FEF
-  reader: ACR122U
+## 2. Install
+
+Install **ACR122U NFC Reader**.
+
+---
+
+## 3. Disable Protection Mode
+
+Open the add-on configuration and disable:
+
+- Protection mode
+
+This is required so the add-on can access the USB smart card reader.
+
+---
+
+## 4. Enable automatic startup
+
+Enable:
+
+- Start on boot
+- Watchdog
+
+Start the add-on.
+
+---
+
+## 5. Restart Home Assistant
+
+The add-on installs the bundled custom integration automatically.
+
+Restart Home Assistant once.
+
+---
+
+## 6. Add the integration
+
+Go to
+
+**Settings → Devices & Services**
+
+Click
+
+**Add Integration**
+
+Search for
+
+```
+ACR122U NFC Reader
 ```
 
-## Installation
+Complete the setup.
 
-1. In Home Assistant, open **Settings → Apps → App store**.
-2. Open the repository menu and add:
+---
 
-   `https://github.com/Flaniel44/home-assistant-acr122u`
+# Usage
 
-3. Install **ACR122U NFC Reader**.
-4. Disable **Protection mode**.
-5. Enable **Start on boot** and **Watchdog**.
-6. Start the app.
+After installation you'll see a new device:
 
-## Hardware
+```
+ACR122U NFC Reader
+```
 
-Tested with:
+with the following entities:
 
-- ACS ACR122U PICC Interface
-- USB vendor ID `072f`
-- USB product ID `2200`
-- Home Assistant OS on Raspberry Pi
+- Card Present
+- Current Tag
+- Last Tag
 
-## Important
+Unknown NFC cards will automatically appear under:
 
-Protection mode must be disabled so the app can open the USB smart-card reader.
+```
+Settings → Tags
+```
 
-This project is currently an app rather than a Core custom integration because direct USB access, `pcscd`, CCID libraries, and system packages are required.
+where they can be renamed and used throughout Home Assistant.
 
-## Native Home Assistant integration (v1.2.0)
+---
 
-The app bundles and installs a companion custom integration. After starting the
-updated app, restart Home Assistant Core once and add **ACR122U NFC Reader**
-under **Settings → Devices & services**.
+# Automation Examples
 
-This adds native Tags, entities, and device triggers without MQTT, HACS, or any
-additional add-on.
+## Trigger when a card is placed
+
+Choose
+
+```
+Device
+    ACR122U NFC Reader
+        Card placed
+```
+
+## Trigger when a card is removed
+
+Choose
+
+```
+Device
+    ACR122U NFC Reader
+        Card removed
+```
+
+---
+
+# Events
+
+The add-on also fires these events for advanced automations:
+
+```
+acr122u_card_present
+acr122u_card_removed
+```
+
+---
+
+# Roadmap
+
+- Multiple reader support
+- Per-tag actions
+- LED control
+- Buzzer control
+- Write NFC tags
+- Home Assistant Assist integration
+- Blueprint library
+
+---
+
+# License
+
+MIT
