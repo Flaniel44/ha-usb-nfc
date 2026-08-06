@@ -1,4 +1,4 @@
-# Home Assistant ACR122U
+# ha-usb-nfc
 
 A Home Assistant OS app for reading NFC card UIDs from an ACS ACR122U USB reader.
 
@@ -29,7 +29,7 @@ data:
 1. In Home Assistant, open **Settings → Apps → App store**.
 2. Open the repository menu and add:
 
-   `https://github.com/Flaniel44/home-assistant-acr122u`
+   `https://github.com/Flaniel44/ha-usb-nfc`
 
 3. Install **ACR122U NFC Reader**.
 4. Disable **Protection mode**.

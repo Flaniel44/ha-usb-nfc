@@ -1,8 +1,8 @@
 name: ACR122U NFC Reader
-version: "1.2.0"
+version: "1.2.1"
 slug: acr122u_reader
 description: ACR122U reader with native tags, entities, and device triggers
-url: https://github.com/Flaniel44/home-assistant-acr122u
+url: https://github.com/Flaniel44/ha-usb-nfc
 startup: services
 boot: auto
 init: false

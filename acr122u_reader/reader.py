@@ -12,6 +12,8 @@ from smartcard.util import toHexString
 
 GET_UID = [0xFF, 0xCA, 0x00, 0x00, 0x00]
 SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN")
+RESTART_FLAG = "/data/home_assistant_restart_required"
+RESTART_NOTIFICATION_ID = "ha_usb_nfc_restart_required"
 
 last_uid: Optional[str] = None
 last_scan_time = 0.0
@@ -48,6 +50,51 @@ def send_event(event_type: str, payload: dict) -> None:
         print(f"Sent {event_type}: {payload}", flush=True)
     except requests.RequestException as error:
         print(f"Failed to send {event_type}: {error}", flush=True)
+
+
+def send_restart_notification() -> None:
+    """Create a persistent notification when the bundled integration changed."""
+    if not os.path.exists(RESTART_FLAG):
+        return
+
+    if not SUPERVISOR_TOKEN:
+        print("Cannot create restart notification: SUPERVISOR_TOKEN unavailable", flush=True)
+        return
+
+    url = "http://supervisor/core/api/services/persistent_notification/create"
+    payload = {
+        "title": "Restart Home Assistant required",
+        "message": (
+            "ha-usb-nfc installed or updated its bundled ACR122U integration. "
+            "Restart Home Assistant Core, then add or reload the "
+            "ACR122U NFC Reader integration under Settings → Devices & services."
+        ),
+        "notification_id": RESTART_NOTIFICATION_ID,
+    }
+
+    for attempt in range(1, 31):
+        try:
+            response = requests.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {SUPERVISOR_TOKEN}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=10,
+            )
+            response.raise_for_status()
+            os.remove(RESTART_FLAG)
+            print("Created Home Assistant restart-required notification", flush=True)
+            return
+        except (requests.RequestException, OSError) as error:
+            if attempt == 30:
+                print(
+                    f"Failed to create restart notification after {attempt} attempts: {error}",
+                    flush=True,
+                )
+                return
+            time.sleep(2)
 
 
 class NFCObserver(CardObserver):
@@ -107,6 +154,8 @@ def shutdown_handler(signum, frame) -> None:
 def main() -> None:
     signal.signal(signal.SIGTERM, shutdown_handler)
     signal.signal(signal.SIGINT, shutdown_handler)
+
+    send_restart_notification()
 
     print("Waiting for ACR122U and NFC cards...", flush=True)
 
