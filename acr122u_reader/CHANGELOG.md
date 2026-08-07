@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.2
+
+- Fix delayed card-removal detection by acknowledging PC/SC state changes
+  before waiting for the next transition.
+- Clear only the transient `SCARD_STATE_CHANGED` bit while preserving the
+  complete reader state and pcsc-lite event counter.
+- Restore the **Card activity** event entity so existing UI event triggers
+  receive `card removed` immediately.
+- Keep the native device triggers and optional Tag selector as the simplest
+  path for new card-specific automations.
+
 ## 1.5.1
 
 - Remove the experimental integration-provided trigger platform, which Home

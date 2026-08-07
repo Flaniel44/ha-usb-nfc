@@ -73,9 +73,9 @@ The ACR122U device provides two explicit device triggers:
 - **NFC card scanned**
 - **NFC card removed**
 
-It also provides a **Card activity** event entity whose events contain the tag
-UID. The Card present, Current tag, and Last tag entities remain available for
-status and conditions.
+It also provides a **Card activity** event entity whose `card scanned` and
+`card removed` events contain the tag UID. The Card present, Current tag, and
+Last tag entities remain available for status and conditions.
 
 ## Fast removal detection
 
@@ -115,8 +115,8 @@ Add trigger
 ```
 
 The integration attributes each trigger to the specific reader device and
-supports selecting tags already registered under **Settings → Tags**. The
-legacy Card activity event entity is no longer loaded for new installations.
+supports selecting tags already registered under **Settings → Tags**. Existing
+automations using the Card activity event entity continue to work.
 
 ### Native trigger discovery
 

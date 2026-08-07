@@ -24,6 +24,7 @@ from .constants import EVENT_CARD_PRESENT, EVENT_CARD_REMOVED, GET_UID
 from .events import HomeAssistantClient
 from .models import ReaderState
 from .log import log, monotonic_ms
+from .pcsc_state import acknowledge_reader_states
 
 
 class NFCObserver(CardObserver):
@@ -162,9 +163,12 @@ class NFCObserver(CardObserver):
                 self._mark_removed("reader was already empty at baseline")
                 return
 
+            states = acknowledge_reader_states(states, SCARD_STATE_CHANGED)
+
             while not stop_event.is_set():
-                # PySCard expects the complete state returned by the previous
-                # call to be supplied as the current state for the next call.
+                # Supply the acknowledged state to PC/SC. The transient
+                # CHANGED bit must be cleared, while pcsc-lite's upper event
+                # counter and all actual reader-state flags are preserved.
                 result, new_states = SCardGetStatusChange(
                     context,
                     timeout_ms,
@@ -191,9 +195,10 @@ class NFCObserver(CardObserver):
                     self._mark_removed("reader state changed to empty")
                     return
 
-                # Preserve the full returned state, including pcsc-lite's
-                # upper event-counter bits, for the next comparison.
-                states = new_states
+                states = acknowledge_reader_states(
+                    new_states,
+                    SCARD_STATE_CHANGED,
+                )
         finally:
             SCardReleaseContext(context)
 

@@ -111,8 +111,9 @@ Version 1.4.5 makes the intended automation path explicit:
 5. Choose **NFC card scanned** or **NFC card removed**.
 6. Optionally select a named tag from **Settings → Tags**.
 
-The previous `Card activity` event entity is no longer loaded for new
-installations. Existing raw events remain available for backward compatibility.
+The `Card activity` event entity remains available for existing automations.
+Its `card scanned` and `card removed` events include the card UID. Existing raw
+events also remain available for backward compatibility.
 
 ## Device-trigger implementation
 
