@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.0
+
+- Add experimental integration-provided automation triggers using `trigger.py`.
+- Add `triggers.yaml` descriptions for **NFC card scanned** and **NFC card removed**.
+- Add native reader device targeting.
+- Add an optional Home Assistant Tag selector.
+- Attach directly to the normalized `acr122u_event` event.
+- Disable the generic Card Present binary sensor by default for new installations.
+- Preserve raw and legacy device triggers for backward compatibility.
+- Declare the custom integration as an integration type of `device`.
+
+> Note: Home Assistant currently marks the integration trigger API as actively
+> developing and subject to change without deprecation.
+
 ## 1.4.6
 
 - Fix native device-trigger discovery using Home Assistant's documented `TRIGGER_BASE_SCHEMA`.

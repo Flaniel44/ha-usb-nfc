@@ -1,3 +1,8 @@
+"""Legacy device automation compatibility layer.
+
+The primary UI triggers are provided by trigger.py as of 1.5.0.
+"""
+
 from __future__ import annotations
 
 from typing import Any

@@ -125,3 +125,17 @@ Version 1.4.6 follows Home Assistant's device-trigger scaffold:
 After updating, restart Home Assistant Core and create the automation through:
 
 **Add trigger → Device → USB NFC Reader → NFC card removed**
+
+## Experimental integration triggers
+
+Version 1.5.0 adds Home Assistant's newer integration-provided trigger platform.
+
+In the automation editor, search for:
+
+- **USB NFC Reader: NFC card scanned**
+- **USB NFC Reader: NFC card removed**
+
+Choose the reader device and optionally select a named Home Assistant Tag.
+
+Home Assistant currently labels this API as actively developing, so the
+implementation may require updates after future Home Assistant releases.

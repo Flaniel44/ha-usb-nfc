@@ -1,0 +1,27 @@
+card_scanned:
+  name: NFC card scanned
+  description: Triggers when one or more USB NFC readers scan a card.
+  target:
+    device:
+      integration: acr122u
+  fields:
+    tag_id:
+      name: Tag
+      description: Select a registered Home Assistant tag, or leave blank for any card.
+      required: false
+      selector:
+        tag:
+
+card_removed:
+  name: NFC card removed
+  description: Triggers when a card is removed from one or more USB NFC readers.
+  target:
+    device:
+      integration: acr122u
+  fields:
+    tag_id:
+      name: Tag
+      description: Select a registered Home Assistant tag, or leave blank for any card.
+      required: false
+      selector:
+        tag:
