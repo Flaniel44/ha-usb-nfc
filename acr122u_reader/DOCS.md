@@ -114,11 +114,11 @@ Version 1.4.5 makes the intended automation path explicit:
 The previous `Card activity` event entity is no longer loaded for new
 installations. Existing raw events remain available for backward compatibility.
 
-## Device-trigger discovery fix
+## Device-trigger implementation
 
-Version 1.4.6 follows Home Assistant's device-trigger scaffold:
+Version 1.5.1 follows Home Assistant's current device-trigger scaffold:
 
-- `TRIGGER_SCHEMA` extends `homeassistant.helpers.device_automation.TRIGGER_BASE_SCHEMA`;
+- `TRIGGER_SCHEMA` extends `homeassistant.components.device_automation.DEVICE_TRIGGER_BASE_SCHEMA`;
 - Home Assistant Core applies the trigger schema automatically;
 - the delegated event configuration is validated with the event trigger schema.
 
@@ -126,16 +126,6 @@ After updating, restart Home Assistant Core and create the automation through:
 
 **Add trigger → Device → USB NFC Reader → NFC card removed**
 
-## Experimental integration triggers
-
-Version 1.5.0 adds Home Assistant's newer integration-provided trigger platform.
-
-In the automation editor, search for:
-
-- **USB NFC Reader: NFC card scanned**
-- **USB NFC Reader: NFC card removed**
-
-Choose the reader device and optionally select a named Home Assistant Tag.
-
-Home Assistant currently labels this API as actively developing, so the
-implementation may require updates after future Home Assistant releases.
+To make a trigger card-specific, scan the card once, name it under
+**Settings → Tags**, and select it in the trigger's optional **Tag** field.
+Leaving the field empty matches every card.

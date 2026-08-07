@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.1
+
+- Remove the experimental integration-provided trigger platform, which Home
+  Assistant currently documents as unstable and not ready for integrations.
+- Keep **NFC card scanned** and **NFC card removed** as native reader device
+  triggers in the automation UI.
+- Keep the optional Home Assistant Tag selector for card-specific automations.
+- Update the device-trigger schema and type imports to Home Assistant's current
+  device automation API.
+- Preserve the immediate `acr122u_card_present` and `acr122u_card_removed`
+  events unchanged.
+
 ## 1.5.0
 
 - Add experimental integration-provided automation triggers using `trigger.py`.

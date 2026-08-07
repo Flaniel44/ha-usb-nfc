@@ -1,7 +1,4 @@
-"""Legacy device automation compatibility layer.
-
-The primary UI triggers are provided by trigger.py as of 1.5.0.
-"""
+"""Device automation triggers for the USB NFC reader."""
 
 from __future__ import annotations
 
@@ -9,6 +6,7 @@ from typing import Any
 
 import voluptuous as vol
 
+from homeassistant.components.device_automation import DEVICE_TRIGGER_BASE_SCHEMA
 from homeassistant.components.homeassistant.triggers import event as event_trigger
 from homeassistant.const import (
     CONF_DEVICE_ID,
@@ -16,9 +14,9 @@ from homeassistant.const import (
     CONF_PLATFORM,
     CONF_TYPE,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers import config_validation as cv, selector
-from homeassistant.helpers.device_automation import TRIGGER_BASE_SCHEMA
+from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, EVENT_DEVICE_ACTIVITY
@@ -30,7 +28,7 @@ TRIGGER_CARD_REMOVED = "card_removed"
 TRIGGER_TYPES = {TRIGGER_CARD_SCANNED, TRIGGER_CARD_REMOVED}
 
 # Home Assistant Core applies this schema automatically.
-TRIGGER_SCHEMA = TRIGGER_BASE_SCHEMA.extend(
+TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
     {
         vol.Required(CONF_TYPE): vol.In(TRIGGER_TYPES),
         vol.Optional(CONF_TAG_ID): cv.string,
@@ -74,9 +72,9 @@ async def async_get_trigger_capabilities(
 async def async_attach_trigger(
     hass: HomeAssistant,
     config: ConfigType,
-    action,
-    trigger_info,
-):
+    action: TriggerActionType,
+    trigger_info: TriggerInfo,
+) -> CALLBACK_TYPE:
     """Attach the native device trigger to the reader activity event."""
     event_data = {
         CONF_DEVICE_ID: config[CONF_DEVICE_ID],

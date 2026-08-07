@@ -18,7 +18,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install validation dependencies
-        run: pip install pyyaml
+        run: pip install homeassistant==2026.8.0 pyyaml
 
       - name: Validate YAML
         run: |
@@ -48,3 +48,8 @@ jobs:
                   json.load(file)
               print(f"Validated {path}")
           PY
+
+      - name: Test Home Assistant device triggers
+        env:
+          PYTHONPATH: acr122u_reader
+        run: python -m unittest discover -s tests -v

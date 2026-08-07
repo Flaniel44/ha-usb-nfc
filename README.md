@@ -125,14 +125,7 @@ device automation scaffold. After restarting Home Assistant Core, the reader
 device exposes **NFC card scanned** and **NFC card removed**, with an optional
 Home Assistant Tag selector.
 
-## Experimental named automation triggers
-
-Version 1.5.0 adds integration-provided triggers that can be found by searching
-the automation trigger picker for **USB NFC Reader**:
-
-- **USB NFC Reader: NFC card scanned**
-- **USB NFC Reader: NFC card removed**
-
-Each trigger supports selecting the reader device and an optional named Home
-Assistant Tag. This API is currently marked as actively developing by Home
-Assistant and may change in future releases.
+The optional **Tag** field makes either device trigger card-specific. Scan an
+unknown card once to register it under **Settings → Tags**, give it a friendly
+name, then select that tag while configuring the trigger. Leave **Tag** empty
+to react to every card.
