@@ -1,10 +1,99 @@
 # ha-usb-nfc
 
-A Home Assistant OS app for reading NFC card UIDs from an ACS ACR122U USB reader.
+A Home Assistant OS app for the ACS ACR122U USB NFC reader, bundled with a
+custom integration for native entities, Tags, and automation triggers.
 
-The app runs `pcscd` inside its container, reads card UIDs through PC/SC, and sends local Home Assistant events when a card is placed on or removed from the reader.
+Card placement and removal are sent to Home Assistant immediately. No MQTT,
+HACS, or separate integration download is required.
 
-## Events
+## Requirements
+
+- Home Assistant OS on an `aarch64` system
+- ACS ACR122U PICC Interface (`072f:2200`)
+- Protection mode disabled for the app
+
+The app needs direct USB access because it runs `pcscd`, the CCID driver, and
+PySCard inside its container.
+
+## Installation
+
+1. Open **Settings → Apps → App store** in Home Assistant.
+2. Open the repository menu and add:
+
+   `https://github.com/Flaniel44/ha-usb-nfc`
+
+3. Install **USB NFC Reader**.
+4. Disable **Protection mode** on the app's **Info** page.
+5. Enable **Start on boot** and **Watchdog**, then start the app.
+6. Restart Home Assistant Core when the app displays the restart-required
+   notification. This loads the bundled custom integration.
+7. Open **Settings → Devices & services → Add integration**, search for
+   **USB NFC Reader**, and add it.
+
+The Core restart is required after an update whenever the bundled integration
+files change.
+
+## Automation triggers
+
+The recommended setup uses the reader's native device triggers:
+
+```text
+Settings → Automations & scenes
+→ Create or edit an automation
+→ Add trigger
+→ Device
+→ USB NFC Reader
+→ NFC card scanned / NFC card removed
+→ Optional Tag
+```
+
+- Leave **Tag** empty to trigger for every card.
+- To create a card-specific trigger, scan the card once, name it under
+  **Settings → Tags**, and select it in the trigger's **Tag** field.
+- The card UID is available to the automation in the trigger event data.
+
+The integration also exposes a **Card activity** event entity with `scanned`
+and `removed` event types. It remains supported for existing automations and
+for general event-entity triggers. Use the device trigger when you want the
+cleanest card-specific setup in the automation UI.
+
+## Entities
+
+The **USB NFC Reader** device provides:
+
+- **Card activity** — `scanned` and `removed` events with the card UID
+- **Card present** — whether a card is currently on the reader
+- **Current tag** — UID of the card currently present
+- **Last tag** — UID of the most recently scanned card
+
+Scanning an unknown card registers it with Home Assistant Tags automatically.
+
+## Immediate card removal
+
+Removal detection uses PC/SC reader-state notifications and normally reacts on
+the first empty-state transition. The default maximum status-change wait is
+150 ms. It does not repeatedly send UID commands, avoiding the long APDU timeout
+some ACR122U and pcsc-lite combinations exhibit after removal.
+
+The app logs separate timestamps for hardware detection and Home Assistant API
+acceptance. These make it possible to distinguish reader latency from automation
+execution latency.
+
+### Options
+
+```yaml
+cooldown_seconds: 2
+removal_poll_interval: 0.15
+```
+
+- `cooldown_seconds` suppresses duplicate scans of the same card.
+- `removal_poll_interval` is the maximum PC/SC status wait in seconds. Values
+  below `0.05` are clamped to `0.05`.
+
+## Raw events
+
+The original event-bus interface is preserved for existing and advanced
+automations.
 
 Card placed:
 
@@ -12,7 +101,7 @@ Card placed:
 event_type: acr122u_card_present
 data:
   uid: C8149FEF
-  reader: ACR122U
+  reader: ACS ACR122U PICC Interface 00 00
 ```
 
 Card removed:
@@ -21,111 +110,42 @@ Card removed:
 event_type: acr122u_card_removed
 data:
   uid: C8149FEF
-  reader: ACR122U
+  reader: USB NFC Reader
 ```
 
-## Installation
+These events are emitted by the app as soon as the corresponding reader state
+is detected. The custom integration converts them into the device-attributed
+triggers and Card activity events described above.
 
-1. In Home Assistant, open **Settings → Apps → App store**.
-2. Open the repository menu and add:
+## Startup diagnostics
 
-   `https://github.com/Flaniel44/ha-usb-nfc`
+The app checks the Home Assistant API token, USB device, PC/SC reader access,
+and bundled integration installation at startup. It creates persistent Home
+Assistant notifications for common setup failures.
 
-3. Install **ACR122U NFC Reader**.
-4. Disable **Protection mode**.
-5. Enable **Start on boot** and **Watchdog**.
-6. Start the app.
+- `HUN-001`: The reader is detected but cannot be opened. Confirm that
+  Protection mode is disabled, then restart the app.
+- `HUN-002`: No supported USB reader is detected. Check the USB connection,
+  then restart the app.
 
-## Hardware
+If a removal automation is delayed, compare these app log entries:
 
-Tested with:
+- `Card removed` — when PC/SC detected removal
+- `Home Assistant accepted acr122u_card_removed` — when the event API call
+  completed
+
+After changing app versions, also confirm that Home Assistant Core was
+restarted so the bundled integration version matches the app version.
+
+## Supported hardware
+
+Currently tested and supported:
 
 - ACS ACR122U PICC Interface
 - USB vendor ID `072f`
 - USB product ID `2200`
-- Home Assistant OS on Raspberry Pi
+- Home Assistant OS on Raspberry Pi (`aarch64`)
 
-## Important
+## License
 
-Protection mode must be disabled so the app can open the USB smart-card reader.
-
-This project is currently an app rather than a Core custom integration because direct USB access, `pcscd`, CCID libraries, and system packages are required.
-
-## Native Home Assistant integration (v1.2.0)
-
-The app bundles and installs a companion custom integration. After starting the
-updated app, restart Home Assistant Core once and add **ACR122U NFC Reader**
-under **Settings → Devices & services**.
-
-This adds native Tags, entities, and device triggers without MQTT, HACS, or any
-additional add-on.
-
-## Startup diagnostics
-
-The app performs a startup health check and creates persistent Home Assistant
-notifications for common setup problems. Users do not need to inspect low-level
-PC/SC or libusb errors to identify a missing reader or enabled Protection mode.
-
-## Automation triggers
-
-The ACR122U device provides two explicit device triggers:
-
-- **NFC card scanned**
-- **NFC card removed**
-
-It also provides a **Card activity** event entity whose `card scanned` and
-`card removed` events contain the tag UID. The Card present, Current tag, and
-Last tag entities remain available for status and conditions.
-
-## Fast removal detection
-
-ha-usb-nfc actively polls the presented card at a configurable interval, so
-**NFC card removed** automations react quickly instead of waiting for a delayed
-PC/SC removal notification. The default interval is 150 ms.
-
-### Non-blocking card removal
-
-Removal detection uses PC/SC reader-state changes rather than repeatedly sending
-commands to a card that may already be absent. This avoids the approximately
-30-second command timeout seen with some ACR122U configurations.
-
-### Synchronized PC/SC state monitoring
-
-Removal monitoring first establishes the reader's complete PC/SC state and then
-tracks changes from that baseline. This avoids falling back to the reader's
-slower removal callback when additional state flags are present.
-
-### Instrumented removal timing
-
-The app releases the UID-reading PC/SC connection before monitoring for card
-removal. Timestamped logs show when removal was detected and how many
-milliseconds Home Assistant took to accept the event, making latency problems
-easier to isolate.
-
-## Recommended automation path
-
-Use the native reader device triggers:
-
-```text
-Add trigger
-→ Device
-→ USB NFC Reader
-→ NFC card scanned / NFC card removed
-→ Optional named Tag
-```
-
-The integration attributes each trigger to the specific reader device and
-supports selecting tags already registered under **Settings → Tags**. Existing
-automations using the Card activity event entity continue to work.
-
-### Native trigger discovery
-
-Version 1.4.6 aligns device-trigger registration with Home Assistant's official
-device automation scaffold. After restarting Home Assistant Core, the reader
-device exposes **NFC card scanned** and **NFC card removed**, with an optional
-Home Assistant Tag selector.
-
-The optional **Tag** field makes either device trigger card-specific. Scan an
-unknown card once to register it under **Settings → Tags**, give it a friendly
-name, then select that tag while configuring the trigger. Leave **Tag** empty
-to react to every card.
+MIT
